@@ -1,6 +1,7 @@
 interface Named {
   readonly name: string; // interface properties can only be declared, not initialized
   // ^ interface properties *can* be set as readonly... now any class that implements this interface CANNOT modify this property
+  nickname?: string; // the "?" tells TypeScript that this property is optional to have (but if it exists, it must be a string)
 }
 
 interface Greetable extends Named { // NOTICE: Interfaces can ALSO use inheritance!!
