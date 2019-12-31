@@ -1,64 +1,31 @@
-/* 
-TS CLASSES
-*/
+interface Named {
+  readonly name: string; // interface properties can only be declared, not initialized
+  // ^ interface properties *can* be set as readonly... now any class that implements this interface CANNOT modify this property
+}
 
-class Department {
-  protected employees: string[] = [];  // notice, I can make properties AND methods as private (only accessible from inside a class)
+interface Greetable extends Named { // NOTICE: Interfaces can ALSO use inheritance!!
+  greet(phrase: string): void; // interface methods: same thing, can only be declared, not initialized
+}
 
-  constructor(private readonly name: string) { // notice, in TS, the constructor's argument should have public/private modifiers (shorthand notation, see lecture 62 in Udemy TypeScript 2020)
-    // readonly is another modifier, which is like const, that it doesn't allow value to be changed
-    // this.name = name;  // this.var = var is automatically implied for every constructor argument with public/private
+class Person implements Greetable { // I can implement multiple interfaces by using comma... so "implements Greetable, Askable"
+  name: string;
+  age: number;
+
+  constructor(name: string, age: number) {
+    this.name = name;
+    this.age = age;
   }
 
-  getName(this: Department): string { // notice that I set the class of this as Department (its own class)... I can set a type to this!!
-    return this.name;
+  greet(phrase: string):void {
+    console.log(phrase, this.name);
   }
 
-  addEmployee(newEmployee: string): void {
-    this.employees.push(newEmployee);
+  changeName(newName: string): void {
+    this.name = newName; // this SHOULD fail because of readonly in the interface, but it doesn't????
   }
 }
 
-let accounting = new Department("Accounting");
-console.log(accounting.getName()); // Accounting
-
-let accountingCopy = { 
-  getName: accounting.getName, 
-  name: "Accting", 
-  employees: [],
-  addEmployee: accounting.addEmployee 
-};
-// console.log(accountingCopy.getName()); // Accting, even though it took the getName() method from Accounting
-      // ^ this only works if getName()'s this isn't limited to Department... because once I set name to private, it becomes a different structure than accountingCopy, whose name is public
-
-
-/*
-TS INHERITANCE
-*/
-
-class ITDepartment extends Department {
-  private admins: string[] = []
-
-  constructor() {
-    super('IT'); // inside a constructor that extends a superclass, I must call super first (the constructor of the superclass);
-      // only after calling super can I use "this"
-  }
-
-  addAdmin(name: string) {
-    this.admins.push(name);
-  }
-
-  get myEmployees(): string[] {
-    return this.employees; // this will only work if employees inside Department is public or protected... if it's private inside Department, subclasses won't be able to access it
-  }
-
-  static printClassName(): string { // this is a pointless method, but it shows how it's called (className.methodName(), instead of instanceName.methodName())... see below
-    return "IT Department";
-  }
-}
-
-let itDept = new ITDepartment();
-itDept.addEmployee('Vlad');
-console.log(itDept.getName()); // prints IT to console
-console.log(itDept.myEmployees); // prints IT to console
-console.log(ITDepartment.printClassName()); // demonstrates how a static method is called... Math.min() is an example
+let user1 = new Person('Han', 32);
+user1.greet('Hi, I am');
+user1.changeName('Yan');
+user1.greet('Hi, I am now')
