@@ -5,14 +5,14 @@ function Logger(target: Function) {
 }
 
 // Let's create a decorator FACTORY now:
-function WithTemplate(template: string, hookId: string) {
-  return function(_target: Function) { // underscore tells TS this variable is not used, but still don't fade it
-    const hookElement = document.getElementById(hookId);
-    if (hookElement) hookElement.innerHTML = template;
+function LoggerFactory(logText: string) {
+  return (target: Function) => {
+    console.log(logText);
+    console.log(target);
   }
 }
 
-@WithTemplate('<b>SHOULD SEE THIS ON THE PAGE</b>', "app")
+@LoggerFactory('Logging From Factory...')
 class Person {
   name = 'Max';
 
