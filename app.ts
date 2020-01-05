@@ -1,29 +1,28 @@
-// A Decorator is a function that takes a class as an argument, THEN executes when the class is DEFINED
-function Logger() {
-  console.log('Logger Decorator Factory called');
-  return function(constructor: Function) {
-    console.log('Logger Decorator called');
-  }
+/* Property Decorators */
+function Log(target: any, propertyName: string) {
+  console.log('Property Decorator!')
+  console.log(target, propertyName);
 }
 
-// Let's create a decorator FACTORY now:
-function ShowOnDom(visibleText: string, hookId: string) {
-  console.log('Show On DOM Decorator Factory called');
-  return function(constructor: any) {
-    console.log('Show On DOM Decorator called');
-    const hookElement = document.getElementById(hookId);
-    const personObject = new constructor(); // created new Person
-    if (hookElement) hookElement.innerHTML = `${visibleText}, ${personObject.name}`;
+class Product {
+  @Log
+  title: string;
+  private _price: number;
+
+  set price(val: number) {
+    if (val > 0) this._price = val;
+  }
+
+  get price() {
+    return this._price;
+  }
+
+  constructor(t: string, p: number) {
+    this.title = t;
+    this._price = p;
+  }
+
+  getPriceWithTax(taxPct: number) {
+    return this._price * (1 + taxPct/100);
   }
 }
-
-@Logger()
-@ShowOnDom('<b>SHOULD SEE THIS ON THE PAGE</b>', "app")
-class Person {
-  name = 'Max';
-
-  constructor () {
-    console.log('Just created Person object');
-  }
-}
-
