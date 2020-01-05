@@ -1,14 +1,14 @@
 // A Decorator is a function that takes a class as an argument, THEN executes when the class is DEFINED
-function Logger(target: Function) {
+function Logger(constructor: Function) {
   console.log('Logging...');
-  console.log(target);
+  console.log(constructor);
 }
 
 // Let's create a decorator FACTORY now:
 function LoggerFactory(logText: string) {
-  return (target: Function) => {
+  return function(constructor: Function) {
     console.log(logText);
-    console.log(target);
+    console.log(constructor);
   }
 }
 

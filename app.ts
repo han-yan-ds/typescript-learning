@@ -1,18 +1,24 @@
 // A Decorator is a function that takes a class as an argument, THEN executes when the class is DEFINED
-function Logger(target: Function) {
-  console.log('Logging...');
-  console.log(target);
-}
-
-// Let's create a decorator FACTORY now:
-function WithTemplate(template: string, hookId: string) {
-  return function(_target: Function) { // underscore tells TS this variable is not used, but still don't fade it
-    const hookElement = document.getElementById(hookId);
-    if (hookElement) hookElement.innerHTML = template;
+function Logger() {
+  console.log('Logger Decorator Factory called');
+  return function(constructor: Function) {
+    console.log('Logger Decorator called');
   }
 }
 
-@WithTemplate('<b>SHOULD SEE THIS ON THE PAGE</b>', "app")
+// Let's create a decorator FACTORY now:
+function ShowOnDom(visibleText: string, hookId: string) {
+  console.log('Show On DOM Decorator Factory called');
+  return function(constructor: any) {
+    console.log('Show On DOM Decorator called');
+    const hookElement = document.getElementById(hookId);
+    const personObject = new constructor(); // created new Person
+    if (hookElement) hookElement.innerHTML = `${visibleText}, ${personObject.name}`;
+  }
+}
+
+@Logger()
+@ShowOnDom('<b>SHOULD SEE THIS ON THE PAGE</b>', "app")
 class Person {
   name = 'Max';
 
@@ -21,4 +27,3 @@ class Person {
   }
 }
 
-const person = new Person();
