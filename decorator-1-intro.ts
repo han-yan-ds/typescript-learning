@@ -1,6 +1,9 @@
 /* 
   A Decorator is a function that adds functionality to classes/properties/methods/parameters, 
   THEN executes when the class is DEFINED
+
+  More on Decorators:
+  https://netbasal.com/behind-the-scenes-how-typescript-decorators-operate-28f8dcacb224
 */
 function Logger(constructor: Function) {
   console.log('Logging...');
@@ -23,5 +26,3 @@ class Person {
     console.log('Just created Person object');
   }
 }
-
-const person = new Person();

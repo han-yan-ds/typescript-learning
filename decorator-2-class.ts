@@ -1,6 +1,10 @@
 /* 
   Class Decorators 
     (executed at time of class definition)
+    (takes in a class's constructor as its only parameter)
+  
+  A class decorator *can* have a return value, but it must return a class
+  More reference: https://netbasal.com/behind-the-scenes-how-typescript-decorators-operate-28f8dcacb224
 */
 function Logger() { // first factory to execute
   console.log('Logger Decorator Factory called');

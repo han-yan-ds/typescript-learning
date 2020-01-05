@@ -1,6 +1,9 @@
 /* 
   Property Decorators
     (executed at time of class definition)
+  
+  A property decorator *can* have a return value, but it must return a PropertyDescriptor if it does
+  More reference: https://netbasal.com/behind-the-scenes-how-typescript-decorators-operate-28f8dcacb224
 */
 function Log(target: any, propertyName: string) {
   /* a Property Decorator always takes in 2 parameters:
@@ -14,6 +17,10 @@ function Log(target: any, propertyName: string) {
 /* 
   Method Decorators 
     (also executed at time of class definition)
+    (takes in a class's constructor as its first parameter)
+
+  A method decorator *can* have a return value, but it must return a PropertyDescriptor if it does
+  More reference: https://netbasal.com/behind-the-scenes-how-typescript-decorators-operate-28f8dcacb224
 */
 function Log2(target: any, accessorName: string, methodDescriptor: PropertyDescriptor) {
   console.log('Method/Accessor Decorator!');
