@@ -1,4 +1,7 @@
-// A Decorator is a function that takes a class as an argument, THEN executes when the class is DEFINED
+/* 
+  A Decorator is a function that adds functionality to classes/properties/methods/parameters, 
+  THEN executes when the class is DEFINED
+*/
 function Logger(constructor: Function) {
   console.log('Logging...');
   console.log(constructor);

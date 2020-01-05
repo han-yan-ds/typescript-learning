@@ -1,4 +1,7 @@
-/* Property Decorators */
+/* 
+  Property Decorators
+    (executed at time of class definition)
+*/
 function Log(target: any, propertyName: string) {
   /* a Property Decorator always takes in 2 parameters:
     1) a target (the constructor)
@@ -8,7 +11,10 @@ function Log(target: any, propertyName: string) {
   console.log(target, propertyName);
 }
 
-/* Method Decorators */
+/* 
+  Method Decorators 
+    (also executed at time of class definition)
+*/
 function Log2(target: any, accessorName: string, methodDescriptor: PropertyDescriptor) {
   console.log('Method/Accessor Decorator!');
   console.log('Target: ', target);

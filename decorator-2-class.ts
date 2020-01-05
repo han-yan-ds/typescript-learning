@@ -1,17 +1,20 @@
-/* Class Decorators */
+/* 
+  Class Decorators 
+    (executed at time of class definition)
+*/
 function Logger() { // first factory to execute
   console.log('Logger Decorator Factory called');
-  return function(constructor: Function) {
+  return function(target: Function) {
     console.log('Logger Decorator called');
   }
 }
 
 function ShowOnDom(visibleText: string, hookId: string) { // last factory to execute
   console.log('Show On DOM Decorator Factory called');
-  return function(constructor: any) {
+  return function(target: any) {
     console.log('Show On DOM Decorator called');
     const hookElement = document.getElementById(hookId);
-    const personObject = new constructor(); // created new Person
+    const personObject = new target(); // created new Person
     if (hookElement) hookElement.innerHTML = `${visibleText}, ${personObject.name}`;
   }
 }
