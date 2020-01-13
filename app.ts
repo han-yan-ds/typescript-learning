@@ -1,180 +1,68 @@
-function Logger(logString: string) {
-  console.log('LOGGER FACTORY');
-  return function(constructor: Function) {
-    console.log(logString);
-    console.log(constructor);
-  };
-}
 
-function WithTemplate(template: string, hookId: string) {
-  console.log('TEMPLATE FACTORY');
-  return function<T extends { new (...args: any[]): { name: string } }>(
-    originalConstructor: T
-  ) {
-    return class extends originalConstructor {
-      constructor(..._: any[]) {
-        super();
-        console.log('Rendering template');
-        const hookEl = document.getElementById(hookId);
-        if (hookEl) {
-          hookEl.innerHTML = template;
-          hookEl.querySelector('h1')!.textContent = this.name;
-        }
-      }
-    };
-  };
-}
+/* 
+  Decorator Use Case:  Validation for HTML Inputs
+*/
 
-// @Logger('LOGGING - PERSON')
-@Logger('LOGGING')
-@WithTemplate('<h1>My Person Object</h1>', 'app')
-class Person {
-  name = 'Max';
-
-  constructor() {
-    console.log('Creating person object...');
-  }
-}
-
-const pers = new Person();
-
-console.log(pers);
-
-// ---
-
-function Log(target: any, propertyName: string | Symbol) {
-  console.log('Property decorator!');
-  console.log(target, propertyName);
-}
-
-function Log2(target: any, name: string, descriptor: PropertyDescriptor) {
-  console.log('Accessor decorator!');
-  console.log(target);
-  console.log(name);
-  console.log(descriptor);
-}
-
-function Log3(
-  target: any,
-  name: string | Symbol,
-  descriptor: PropertyDescriptor
-) {
-  console.log('Method decorator!');
-  console.log(target);
-  console.log(name);
-  console.log(descriptor);
-}
-
-function Log4(target: any, name: string | Symbol, position: number) {
-  console.log('Parameter decorator!');
-  console.log(target);
-  console.log(name);
-  console.log(position);
-}
-
-class Product {
-  @Log
-  title: string;
-  private _price: number;
-
-  @Log2
-  set price(val: number) {
-    if (val > 0) {
-      this._price = val;
-    } else {
-      throw new Error('Invalid price - should be positive!');
-    }
-  }
-
-  constructor(t: string, p: number) {
-    this.title = t;
-    this._price = p;
-  }
-
-  @Log3
-  getPriceWithTax(@Log4 tax: number) {
-    return this._price * (1 + tax);
-  }
-}
-
-const p1 = new Product('Book', 19);
-const p2 = new Product('Book 2', 29);
-
-function Autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-  const adjDescriptor: PropertyDescriptor = {
-    configurable: true,
-    enumerable: false,
-    get() {
-      const boundFn = originalMethod.bind(this);
-      return boundFn;
-    }
-  };
-  return adjDescriptor;
-}
-
-class Printer {
-  message = 'This works!';
-
-  @Autobind
-  showMessage() {
-    console.log(this.message);
-  }
-}
-
-const p = new Printer();
-p.showMessage();
-
-const button = document.querySelector('button')!;
-button.addEventListener('click', p.showMessage);
-
-// ---
-
+/*
+Property Decorators below:
+*/
 interface ValidatorConfig {
   [property: string]: {
-    [validatableProp: string]: string[]; // ['required', 'positive']
-  };
+    [validatableProp: string]: string[], // ['notEmpty', 'positive']
+  }
 }
 
 const registeredValidators: ValidatorConfig = {};
 
-function Required(target: any, propName: string) {
-  registeredValidators[target.constructor.name] = {
-    ...registeredValidators[target.constructor.name],
-    [propName]: ['required']
-  };
-}
-
-function PositiveNumber(target: any, propName: string) {
-  registeredValidators[target.constructor.name] = {
-    ...registeredValidators[target.constructor.name],
-    [propName]: ['positive']
-  };
-}
-
-function validate(obj: any) {
-  const objValidatorConfig = registeredValidators[obj.constructor.name];
-  if (!objValidatorConfig) {
-    return true;
+function NotEmpty(target: any, propertyName: string) {
+  const courseClassName = target.constructor.name; // Function.prototype.name is a property that's the name of the function... in this case, Course
+  if (registeredValidators[courseClassName]) { // if registeredValidators[Course] already exists, add a key to it, don't overwrite it
+    registeredValidators[courseClassName][propertyName] = ['notEmpty'];
+  } else { // else, create a new registeredValidators[Course]
+    registeredValidators[courseClassName] = {[propertyName]: ['notEmpty']}; // propertyName is in brackets because I want this KEY to be the string-value of propertyName, instead of 'propertyName'
   }
+}
+
+function PositiveNumber(target: any, propertyName: string) {
+  const courseClassName = target.constructor.name;
+  if (registeredValidators[courseClassName]) {
+    registeredValidators[courseClassName][propertyName] = ['positive'];
+  } else {
+    registeredValidators[courseClassName] = {[propertyName]: ['positive']};
+  }
+}
+
+/* 
+  So now, registeratedValidators should be of structure:
+  {
+    Course: {price: ['positive']}
+  }
+*/
+
+function validateCourse(course: any) {
+  const courseValidatorConfig = registeredValidators[course.constructor.name]; // should be an object of type { propertyName: string[] }
   let isValid = true;
-  for (const prop in objValidatorConfig) {
-    for (const validator of objValidatorConfig[prop]) {
-      switch (validator) {
-        case 'required':
-          isValid = isValid && !!obj[prop];
-          break;
-        case 'positive':
-          isValid = isValid && obj[prop] > 0;
-          break;
+
+  if (!courseValidatorConfig) return isValid;  // returning true as default if courseValidatorConfig doesn't exist
+  
+  for (let propName in courseValidatorConfig) { // loop through propertyNames
+    for (let validatorString of courseValidatorConfig[propName]) { // loop through the string[], such as 'notEmpty' and 'positive'
+    switch (validatorString) {
+      case 'notEmpty':
+        isValid = isValid && (course[propName] as boolean);
+        break;
+      case 'positive':
+        isValid = isValid && course[propName] > 0;
+        break;
       }
     }
   }
-  return isValid;
+    
+  return isValid; // returning true as default if courseValidatorConfig exists but is empty
 }
-
+  
 class Course {
-  @Required
+  @NotEmpty
   title: string;
   @PositiveNumber
   price: number;
@@ -184,21 +72,29 @@ class Course {
     this.price = p;
   }
 }
+  
+  
+const courseForm = document.querySelector('form')!; // ! means will not be null
+courseForm.addEventListener('submit', (e) => {
+  /* 
+    The reason to have a validator decorators is to make sure:
+    1) Course Title isn't empty
+    2) Course Price is positive
+  */
+  e.preventDefault();
+  const titleElement = document.getElementById('title') as HTMLInputElement;
+  const priceElement = document.getElementById('price') as HTMLInputElement;
 
-const courseForm = document.querySelector('form')!;
-courseForm.addEventListener('submit', event => {
-  event.preventDefault();
-  const titleEl = document.getElementById('title') as HTMLInputElement;
-  const priceEl = document.getElementById('price') as HTMLInputElement;
+  const title = titleElement.value;
+  const price = +priceElement.value;
 
-  const title = titleEl.value;
-  const price = +priceEl.value;
+  const newCourse = new Course(title, price);
 
-  const createdCourse = new Course(title, price);
-
-  if (!validate(createdCourse)) {
+  if (!validateCourse(newCourse)) { // where validateCourse is called!
     alert('Invalid input, please try again!');
     return;
+  } else {
+    console.log(newCourse);
+    console.log(registeredValidators);
   }
-  console.log(createdCourse);
-});
+})
