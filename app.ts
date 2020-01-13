@@ -14,39 +14,28 @@ interface ValidatorConfig {
 
 const registeredValidators: ValidatorConfig = {};
 
-function NotEmpty(target: any, propertyName: string) {
-  const courseClassName = target.constructor.name; // Function.prototype.name is a property that's the name of the function... in this case, Course
-  registeredValidators[courseClassName] = { // if registeredValidators[Course] already exists, append a key/value to it, instead of overwriting it
-    ...registeredValidators[courseClassName],
-    [propertyName]: (registeredValidators[courseClassName] && registeredValidators[courseClassName][propertyName]) ? 
-      ['notEmpty', ...registeredValidators[courseClassName][propertyName]]
-      : ['notEmpty'], // propertyName is in brackets because I want this KEY to be the string-value of propertyName, instead of 'propertyName'
+function MakeValidatorDecorator(validatorString: string) {
+  return (target: any, propertyName: string) => {
+    const courseClassName = target.constructor.name; // Function.prototype.name is a property that's the name of the function... in this case, Course
+    registeredValidators[courseClassName] = {
+      // spread operator! If registeredValidators[Course] already exists, append a key/value to it, instead of overwriting it
+      ...registeredValidators[courseClassName],
+      /* propertyName is in brackets because I want this KEY to be the string-value of propertyName, instead of 'propertyName'
+      also notice optional-chaining in here */
+      [propertyName]: (registeredValidators[courseClassName]?.[propertyName]) ?
+        [validatorString, ...registeredValidators[courseClassName][propertyName]]
+        : [validatorString],
+    }
   }
 }
 
-function PositiveNumber(target: any, propertyName: string) {
-  const courseClassName = target.constructor.name;
-  registeredValidators[courseClassName] = {
-    ...registeredValidators[courseClassName],
-    [propertyName]: (registeredValidators[courseClassName] && registeredValidators[courseClassName][propertyName]) ? 
-      ['positive', ...registeredValidators[courseClassName][propertyName]]
-      : ['positive'],
-  }
-}
-
-function MaxLength5(target: any, propertyName: string) {
-  const courseClassName = target.constructor.name;
-  registeredValidators[courseClassName] = {
-    ...registeredValidators[courseClassName],
-    [propertyName]: (registeredValidators[courseClassName] && registeredValidators[courseClassName][propertyName]) ? 
-      ['under5chars', ...registeredValidators[courseClassName][propertyName]]
-      : ['under5chars'],
-  }
-}
+const NotEmpty = MakeValidatorDecorator('notEmpty');
+const PositiveNumber = MakeValidatorDecorator('positive');
+const MaxLength5 = MakeValidatorDecorator('under5chars');
 
 /* 
   So now, registeratedValidators should be of structure (arrays in nested objects):
-  { Course: {title: ['notEmpty'], price: ['positive']} }
+  { Course: {title: ['notEmpty', 'under5chars'], price: ['positive', 'notEmpty']} }
 */
 
 function validateCourse(course: any) {
@@ -55,7 +44,7 @@ function validateCourse(course: any) {
 
   if (!courseValidatorConfig) return isValid;  // returning true as default if courseValidatorConfig doesn't exist
   
-  for (let propName in courseValidatorConfig) { // loop through propertyNames
+  for (let propName in courseValidatorConfig) { // loop through propertyNames (title, price)
     for (let validatorString of courseValidatorConfig[propName]) { // loop through the string[], such as 'notEmpty' and 'positive'
     switch (validatorString) {
       case 'notEmpty':
@@ -104,7 +93,7 @@ courseForm.addEventListener('submit', (e) => {
     alert('Invalid input, please try again!');
     return;
   } else {
-    console.log(newCourse);
-    console.log(registeredValidators);
+    console.log('newCourse:', newCourse);
+    console.log('registeredValidators:', registeredValidators);
   }
 })
