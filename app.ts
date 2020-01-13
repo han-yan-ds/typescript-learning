@@ -1,10 +1,16 @@
 
 /* 
   Decorator Use Case:  Validation for HTML Inputs
+
+  READ CAREFULLY THE NOTES, THIS CODE IS COMPLEX
 */
 
 /*
-Property Decorators below:
+  1)Controlling the structure of registeredValidators with an interface
+    registeredValidators will store the validator decorators that are called on certain properties
+
+    Eg, registeratedValidators should be of structure (arrays in nested objects):
+      { Course: {title: ['notEmpty', 'under5chars'], price: ['positive', 'notEmpty']} }
 */
 interface ValidatorConfig {
   [property: string]: {
@@ -14,39 +20,64 @@ interface ValidatorConfig {
 
 const registeredValidators: ValidatorConfig = {};
 
-function MakeValidatorDecorator(validatorString: string) {
+/* 
+  2)Creating a decorator factory:
+    This factory will create decorators:
+    Each created decorator will register the propertyName (eg: title) and validatorName (eg: notEmpty) to the registeredValidators object
+
+    a)Notice code that makes sure I create a new object if it doesn't yet exist, but I append to that object if it does exist:
+      ...registeredValidators[courseClassName]
+
+    b)Notice code that makes sure I create a new array if it doesn't yet exist, but I append to that array if it does exist:
+      (registeredValidators[courseClassName]?.[propertyName]) ?
+        [validatorName, ...registeredValidators[courseClassName][propertyName]]
+        : [validatorName]
+    
+    c)Notice IN code for array-check^^: In the ternary operator's check, I check multiple levels of key-value pairs exist using optional-chaining (TS feature):
+      (registeredValidators[courseClassName]?.[propertyName]) ?
+
+    d)Notice: propertyName is in brackets because I want this KEY to be the string-value of propertyName, instead of 'propertyName'
+      [propertyName]: .......
+*/
+function MakeValidatorDecorator(validatorName: string) {
   return (target: any, propertyName: string) => {
     const courseClassName = target.constructor.name; // Function.prototype.name is a property that's the name of the function... in this case, Course
     registeredValidators[courseClassName] = {
-      // spread operator! If registeredValidators[Course] already exists, append a key/value to it, instead of overwriting it
       ...registeredValidators[courseClassName],
-      /* propertyName is in brackets because I want this KEY to be the string-value of propertyName, instead of 'propertyName'
-      also notice optional-chaining in here */
       [propertyName]: (registeredValidators[courseClassName]?.[propertyName]) ?
-        [validatorString, ...registeredValidators[courseClassName][propertyName]]
-        : [validatorString],
+        [validatorName, ...registeredValidators[courseClassName][propertyName]]
+        : [validatorName],
     }
   }
 }
 
+/* 
+  3)Decorators generated from decorator factory (see step 2)
+*/
 const NotEmpty = MakeValidatorDecorator('notEmpty');
 const PositiveNumber = MakeValidatorDecorator('positive');
 const MaxLength5 = MakeValidatorDecorator('under5chars');
 
-/* 
-  So now, registeratedValidators should be of structure (arrays in nested objects):
-  { Course: {title: ['notEmpty', 'under5chars'], price: ['positive', 'notEmpty']} }
-*/
 
+/*
+  4)Function to actually check the Course object against registeredValidators
+
+    Recall: registeratedValidators[Course] is of structure:
+      {title: ['notEmpty', 'under5chars'], price: ['positive', 'notEmpty']}
+
+    Thus, I'm looping through the propertyNames, THEN looping through the validatorNames within each propertyName, and checking the property
+      Eg: If I get to price -> positive...
+        I check if the course[price] is positive
+*/
 function validateCourse(course: any) {
-  const courseValidatorConfig = registeredValidators[course.constructor.name]; // should be an object of type { propertyName: string[] }
+  const courseValidatorConfig = registeredValidators[course.constructor.name]; // I'm validating Course, thus I'm using registeredValidators[Course]
   let isValid = true;
 
-  if (!courseValidatorConfig) return isValid;  // returning true as default if courseValidatorConfig doesn't exist
+  if (!courseValidatorConfig) return isValid;  // returning true as default if registeredValidators[Course] doesn't exist
   
   for (let propName in courseValidatorConfig) { // loop through propertyNames (title, price)
-    for (let validatorString of courseValidatorConfig[propName]) { // loop through the string[], such as 'notEmpty' and 'positive'
-    switch (validatorString) {
+    for (let validatorName of courseValidatorConfig[propName]) { // loop through the string[], such as 'notEmpty' and 'positive'
+    switch (validatorName) {
       case 'notEmpty':
         isValid = isValid && (course[propName] as boolean);
         break;
@@ -59,9 +90,12 @@ function validateCourse(course: any) {
       }
     }
   }
-  return isValid; // returning true as default if courseValidatorConfig exists but is empty
+  return isValid; // returning true as default if registeredValidators[Course] exists but is empty object
 }
-  
+
+/*
+  5)Simply creating a Course class that'll generate a Course instance when a form (see below this) is submitted
+*/
 class Course {
   @NotEmpty @MaxLength5 title: string;
   @PositiveNumber @NotEmpty price: number;
@@ -72,22 +106,16 @@ class Course {
   }
 }
   
-  
+/*
+  6)Form that'll generate a new Course instance
+*/
 const courseForm = document.querySelector('form')!; // ! means will not be null
 courseForm.addEventListener('submit', (e) => {
-  /* 
-    The reason to have a validator decorators is to make sure:
-    1) Course Title isn't empty
-    2) Course Price is positive
-  */
   e.preventDefault();
   const titleElement = document.getElementById('title') as HTMLInputElement;
   const priceElement = document.getElementById('price') as HTMLInputElement;
 
-  const title = titleElement.value;
-  const price = +priceElement.value;
-
-  const newCourse = new Course(title, price);
+  const newCourse = new Course(titleElement.value, +priceElement.value);
 
   if (!validateCourse(newCourse)) { // where validateCourse is called!
     alert('Invalid input, please try again!');
