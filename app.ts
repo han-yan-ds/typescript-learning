@@ -18,7 +18,9 @@ function NotEmpty(target: any, propertyName: string) {
   const courseClassName = target.constructor.name; // Function.prototype.name is a property that's the name of the function... in this case, Course
   registeredValidators[courseClassName] = { // if registeredValidators[Course] already exists, append a key/value to it, instead of overwriting it
     ...registeredValidators[courseClassName],
-    [propertyName]: ['notEmpty'], // propertyName is in brackets because I want this KEY to be the string-value of propertyName, instead of 'propertyName'
+    [propertyName]: (registeredValidators[courseClassName] && registeredValidators[courseClassName][propertyName]) ? 
+      ['notEmpty', ...registeredValidators[courseClassName][propertyName]]
+      : ['notEmpty'], // propertyName is in brackets because I want this KEY to be the string-value of propertyName, instead of 'propertyName'
   }
 }
 
@@ -26,7 +28,19 @@ function PositiveNumber(target: any, propertyName: string) {
   const courseClassName = target.constructor.name;
   registeredValidators[courseClassName] = {
     ...registeredValidators[courseClassName],
-    [propertyName]: ['positive'],
+    [propertyName]: (registeredValidators[courseClassName] && registeredValidators[courseClassName][propertyName]) ? 
+      ['positive', ...registeredValidators[courseClassName][propertyName]]
+      : ['positive'],
+  }
+}
+
+function MaxLength5(target: any, propertyName: string) {
+  const courseClassName = target.constructor.name;
+  registeredValidators[courseClassName] = {
+    ...registeredValidators[courseClassName],
+    [propertyName]: (registeredValidators[courseClassName] && registeredValidators[courseClassName][propertyName]) ? 
+      ['under5chars', ...registeredValidators[courseClassName][propertyName]]
+      : ['under5chars'],
   }
 }
 
@@ -50,18 +64,18 @@ function validateCourse(course: any) {
       case 'positive':
         isValid = isValid && course[propName] > 0;
         break;
+      case 'under5chars':
+        isValid = isValid && course[propName].length < 5;
+        break;
       }
     }
   }
-    
   return isValid; // returning true as default if courseValidatorConfig exists but is empty
 }
   
 class Course {
-  @NotEmpty
-  title: string;
-  @PositiveNumber
-  price: number;
+  @NotEmpty @MaxLength5 title: string;
+  @PositiveNumber @NotEmpty price: number;
 
   constructor(t: string, p: number) {
     this.title = t;
