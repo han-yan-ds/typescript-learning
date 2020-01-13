@@ -97,7 +97,7 @@ function validateCourse(course: any) {
   5)Simply creating a Course class that'll generate a Course instance when a form (see below this) is submitted
 */
 class Course {
-  @NotEmpty @MaxLength5 title: string;
+  @NotEmpty @MaxLength5 title: string; // decorators registering the properties, to be validated later
   @PositiveNumber @NotEmpty price: number;
 
   constructor(t: string, p: number) {
