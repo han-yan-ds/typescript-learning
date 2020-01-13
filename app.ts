@@ -16,27 +16,23 @@ const registeredValidators: ValidatorConfig = {};
 
 function NotEmpty(target: any, propertyName: string) {
   const courseClassName = target.constructor.name; // Function.prototype.name is a property that's the name of the function... in this case, Course
-  if (registeredValidators[courseClassName]) { // if registeredValidators[Course] already exists, add a key to it, don't overwrite it
-    registeredValidators[courseClassName][propertyName] = ['notEmpty'];
-  } else { // else, create a new registeredValidators[Course]
-    registeredValidators[courseClassName] = {[propertyName]: ['notEmpty']}; // propertyName is in brackets because I want this KEY to be the string-value of propertyName, instead of 'propertyName'
+  registeredValidators[courseClassName] = { // if registeredValidators[Course] already exists, append a key/value to it, instead of overwriting it
+    ...registeredValidators[courseClassName],
+    [propertyName]: ['notEmpty'], // propertyName is in brackets because I want this KEY to be the string-value of propertyName, instead of 'propertyName'
   }
 }
 
 function PositiveNumber(target: any, propertyName: string) {
   const courseClassName = target.constructor.name;
-  if (registeredValidators[courseClassName]) {
-    registeredValidators[courseClassName][propertyName] = ['positive'];
-  } else {
-    registeredValidators[courseClassName] = {[propertyName]: ['positive']};
+  registeredValidators[courseClassName] = {
+    ...registeredValidators[courseClassName],
+    [propertyName]: ['positive'],
   }
 }
 
 /* 
-  So now, registeratedValidators should be of structure:
-  {
-    Course: {price: ['positive']}
-  }
+  So now, registeratedValidators should be of structure (arrays in nested objects):
+  { Course: {title: ['notEmpty'], price: ['positive']} }
 */
 
 function validateCourse(course: any) {
