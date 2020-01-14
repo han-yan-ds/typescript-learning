@@ -64,6 +64,8 @@
     "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
   },
   "include": [
-    "app.ts"
+    "app.ts",
+    "decorator-6-use1-autobind.ts",
+    "decorator-7-use2-validators.ts",
   ]
 }
