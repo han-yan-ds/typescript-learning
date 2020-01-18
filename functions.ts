@@ -10,3 +10,19 @@ function hasCb(arg1: number, cb: (x: number) => number): number {
 }
 
 hasCb(3, print); // won't work because cb returns number, and print returns void
+
+/*
+  
+*/
+function every<T>(boolFunc: (x: T)=>boolean) {
+  /* 
+    FANTASTIC CASE STUDY on using generic types in TypeScript!
+    - only true if boolFunc(each item in the array) is true...
+    - the generics come into play because the array MUST be of a uniform type, and the boolFunc MUST take only that type!
+  */
+  return function(arr: T[]) {
+    return arr.reduce((endBool: boolean, item: T) => {
+      return endBool && boolFunc(item);
+    }, true);
+  }
+}
